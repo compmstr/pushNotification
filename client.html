@@ -1,0 +1,94 @@
+<html>
+  <head>
+    <title>Push notification sample</title>
+    <script src="socket.io/socket.io.js"></script>
+    <script src="js/jquery.min.js"></script>
+    <script>
+      //Create the websocket
+      var socket = io.connect('http://localhost');
+      //When we get a message, put the contents inside the container
+      socket.on('notification', function (data){
+        $('#container').html(data.sample);
+        var splitTime = data.time.split('.')[0].split('T');
+        $('#time').html('Last Update: ' + splitTime[0] + " - " + splitTime[1]);
+      });
+      socket.on('nickname confirm', function(data){
+        $('#nicknameForm').hide();
+        $('#nicknameDisplay').html("<p>Nickname: " + data.nickname + "</p>").show();
+      });
+      socket.on('nicknames', function(data){
+        var nicks = $('#nicks')[0];
+        var nicknames = data.nicknames;
+        nicks.innerHTML = '';
+        for(i = 0; i < nicknames.length; i++){
+          nicks.innerHTML += "<li>" + nicknames[i] + "</li>";
+        }
+      });
+      function setNickname(){
+        var newNick = $('#nickname-entry')[0].value;
+        //socket.set('nickname', newNick);
+        socket.emit('nickname update', {nickname: newNick});
+      }
+      socket.on('msg posted', function(data){
+        var msgbox = $('#msgs')[0];
+        msgbox.value += data.nickname +
+              ": " + data.msg + "\n";
+        msgbox.scrollTop = msgbox.scrollHeight;
+      });
+      function sendMsg(){
+        var msg = $('#msg-entry')[0].value;
+        $('#msg-entry')[0].value = '';
+        var nickname = $('#nickname-entry')[0].value;
+        socket.emit('msg post', {msg: msg});
+      }
+    </script>
+    <style>
+      #msgs{
+        border: 1px solid gray;
+        width: 500px;
+        height: 200px;
+        float: left;
+      }
+      #nicks-container{
+        width: 300px;
+        height: 200px;
+        border: 1px solid gray;
+        float: left;
+      }
+      .label{
+        background-color: #444;
+        color: white;
+        width: 100%;
+      }
+      .clear{
+        clear: both;
+      }
+      ul#nicks{
+        list-style-type: none;
+        margin: 0;
+        padding: 5px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id='container'>This is where the update goes</div>
+    <div id='time'></div>
+    <div class='clear' />
+    <textarea id='msgs' readonly='readonly'></textarea>
+    <div id='nicks-container'><div class='label'>Users:</div>
+      <ul id='nicks'></ul>
+    </div>
+    <div class='clear' />
+    <form id='nicknameForm' onsubmit='return false;'>
+      <label>Nickname: <input type='text' id='nickname-entry' name='nickname' /></label>
+      <input type='submit' onsubmit='return false;' onclick='setNickname();' value='Set'>
+    </form>
+    <div id='nicknameDisplay' style='display:none;'>
+      
+    </div>
+    <form id='msgForm' onsubmit='return false;'>
+      <label>Message: <input type='text' id='msg-entry' name='msg' /></label>
+      <input type='submit' onclick='sendMsg();return false;' value='Send' />
+    </form>
+  </body>
+</html>
