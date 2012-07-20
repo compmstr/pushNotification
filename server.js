@@ -62,7 +62,6 @@ io.sockets.on('connection', function (socket){
     console.log('got a nickname update: ' + data.nickname);
     socket.nickname = data.nickname;
     console.log('Nickname is: ' + socket.nickname);
-    socket.emit('msg posted', {nickname: 'Users', msg: nicknames.join(', ')});
     socket.emit('nickname confirm', {'nickname': socket.nickname});
     nicknames.push(socket.nickname);
     console.log("Nicknames: " + nicknames);
